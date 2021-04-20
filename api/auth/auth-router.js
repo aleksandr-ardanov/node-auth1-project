@@ -78,28 +78,27 @@ router.post('/register',checkUsernameFree, checkPasswordLength, (req,res,next) =
 
 router.post('/login',checkUsernameExists, async (req,res) => {
   const {username, password} = req.body;
-  const user = await Users.findBy(username);
-
+  const user = await Users.findBy({username});
   if(user && bcrypt.compareSync(password,user.password)){
     req.session.user = user;
-    res.json({message:`Welcome home ${user}`})
+    res.json({message:`Welcome ${username}`})
   } else{
-    res.status(401).json({message:"unauthorized"})
+    res.status(401).json({message:"invalid credentials"})
   }
 })
 
-router.post('/logout', (req,res,next) => {
-  if (req.session && req.session.user){
+router.get('/logout', (req,res,next) => {
+  if ( req.session.user){
     req.session.destroy(err => {
       if (err){
         next({message:"sorry you can't leave"})
       }
       else{
-        res.json({message:"goodbye"})
+        res.json({message:"logged out"})
       }
     })
   } else{
-    next({ message: 'i do not actually know you!', status: 404 })
+    res.status(404).json({message:'no session'})
   }
 })
 

@@ -22,7 +22,7 @@ const server = express();
 
 server.use(session({
   // config of cookie and session store
-  name: 'monkey',
+  name: 'chocolatechip',
   secret: 'keep it secret, keep it safe!', //env not from code
   cookie: {
     maxAge: 1000 * 60 * 60,

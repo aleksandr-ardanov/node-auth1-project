@@ -61,3 +61,46 @@
 
  
 // Don't forget to add the router to the `exports` object so it can be required in other modules
+const router = require('express').Router()
+const Users = require('../users/users-model')
+const bcrypt = require('bcryptjs')
+const {checkUsernameFree,checkUsernameExists,checkPasswordLength} = require('./auth-middleware')
+
+router.post('/register',checkUsernameFree, checkPasswordLength, (req,res,next) => {
+  const {username, password} = req.body;
+  const hash = bcrypt.hashSync(password,8)
+  Users.add({username,password:hash})
+    .then(user => {
+      res.status(201).json(user)
+    })
+    .catch(next)
+})
+
+router.post('/login',checkUsernameExists, async (req,res) => {
+  const {username, password} = req.body;
+  const user = await Users.findBy(username);
+
+  if(user && bcrypt.compareSync(password,user.password)){
+    req.session.user = user;
+    res.json({message:`Welcome home ${user}`})
+  } else{
+    res.status(401).json({message:"unauthorized"})
+  }
+})
+
+router.post('/logout', (req,res,next) => {
+  if (req.session && req.session.user){
+    req.session.destroy(err => {
+      if (err){
+        next({message:"sorry you can't leave"})
+      }
+      else{
+        res.json({message:"goodbye"})
+      }
+    })
+  } else{
+    next({ message: 'i do not actually know you!', status: 404 })
+  }
+})
+
+module.exports = router

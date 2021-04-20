@@ -26,3 +26,16 @@
 
 
 // Don't forget to add the router to the `exports` object so it can be required in other modules
+const router = require('express').Router()
+const Users = require('./users-model')
+const {restricted} = require('../auth/auth-middleware')
+
+router.get('/',restricted, (req,res,next) => {
+  Users.find()
+    .then(all => {
+      res.status(200).json(all)
+    })
+    .catch(next)
+})
+
+module.exports = router
